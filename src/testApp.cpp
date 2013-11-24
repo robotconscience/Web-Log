@@ -6,16 +6,6 @@ static string API_SEC = "7bf2405ff29ae266";
 //--------------------------------------------------------------
 void testApp::setup(){
     ofBackground(0);
-    flickrAPI.authenticate(API_KEY, API_SEC, ofxFlickr::FLICKR_READ);
-    //log.attachFlickr(&flickrAPI);
-    //log.attachLoader(&loader);
-    //fire.attachFlickr(&flickrAPI);
-    //fire.attachLoader(&loader);
-    //fireplace.attachFlickr(&flickrAPI);
-    //fireplace.attachLoader(&loader);
-    
-//    fireSound.attachFlickr(&flickrAPI);
-//    fireSound.attachLoader(&loader);
     
     ofEnableAlphaBlending();
     ofEnableSmoothing();

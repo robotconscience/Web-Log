@@ -9,7 +9,6 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxFlickr.h"
 #include "ofxThreadedImageLoader.h"
 
 class Searcher : protected ofThread, public ofRectangle {
@@ -21,17 +20,11 @@ public:
         lastChanged = 0;
         frame       = 0;
         changeRate  = 100;
-        api = NULL;
         page = 0;
         currentImage = 0;
-        media = "photos";
         shader.load("knockoutBlack");
     }
     
-    void attachFlickr( ofxFlickr::API * _api ){
-        api = _api;
-        startThread();
-    }
     
     void attachLoader( ofxThreadedImageLoader * _loader ){
         loader = _loader;
@@ -42,12 +35,6 @@ public:
     }
     
     virtual void update(){
-        lock();
-        for (int i=0; i<mediaBuffer.size(); i++){
-            currentMedia.push_back( mediaBuffer[i]);
-        }
-        mediaBuffer.clear();
-        unlock();
         render();
     }
     
@@ -70,21 +57,13 @@ public:
             if ( frame - lastChanged > changeRate ){
                 lastChanged = frame;
                 currentImage++;
-                if (currentMedia.size() > 0){
-                    images.push_back( new ofImage());
-                    loader->loadFromURL( *images.back(), currentMedia[0].getURL() );
-                    currentMedia.erase(currentMedia.begin());
-                }
+                
                 if ( currentImage + 1 >= images.size() || images[currentImage]->width == 0){
                     currentImage = 0;
                 }
             }
             
-        } else if (currentMedia.size() > 0){
-            images.push_back( new ofImage());
-            loader->loadFromURL( *images.back(), currentMedia[0].getURL() );
-            currentMedia.erase(currentMedia.begin());
-        }
+        } 
         unlock();
         frame++;
     }
@@ -127,36 +106,8 @@ protected:
     int currentImage;
     string term;
     
-    ofxFlickr::API * api;
-    vector<ofxFlickr::Media> currentMedia, mediaBuffer;
     vector<ofImage *> images;
     int page;
-    
-    void threadedFunction(){
-        while (isThreadRunning()){
-            if ( ofGetElapsedTimeMillis() - lastUpdated > updateRate && api != NULL ){
-                lastUpdated = ofGetElapsedTimeMillis();
-                ofxFlickr::Query q;
-                q.page = page;
-                q.text = term;
-                q.media = media;
-                page++;
-                vector<ofxFlickr::Media> media = api->search( q );
-                
-//                for (int i=0; i<media.size(); i++){
-//                    media[i] = api->getMediaById(media[i].id);
-//                }
-                
-                lock();
-                for (int i=0; i<media.size(); i++){
-                    mediaBuffer.push_back( media[i]);
-                }
-                unlock();
-            }
-            sleep(100);
-            yield();
-        }
-    }
     
 private:
     

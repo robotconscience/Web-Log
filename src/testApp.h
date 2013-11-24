@@ -1,7 +1,6 @@
 #pragma once
 
 #include "ofMain.h"
-#include "ofxFlickr.h"
 #include "Log.h"
 #include "Fire.h"
 #include "Fireplace.h"
@@ -26,7 +25,6 @@ class testApp : public ofBaseApp{
 		void dragEvent(ofDragInfo dragInfo);
 		void gotMessage(ofMessage msg);
 		
-        ofxFlickr::API flickrAPI;
         Log log;
         Fire fire;
         Fireplace fireplace;
