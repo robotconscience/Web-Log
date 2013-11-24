@@ -1,0 +1,6 @@
+[submodule "src/addons/ofxDelaunay"]
+	path = src/addons/ofxDelaunay
+	url = https://github.com/obviousjim/ofxDelaunay.git
+[submodule "src/addons/ofxUI"]
+	path = src/addons/ofxUI
+	url = https://github.com/rezaali/ofxUI.git
