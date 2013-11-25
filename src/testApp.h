@@ -8,6 +8,8 @@
 #include "ofxThreadedImageLoader.h"
 #include "Triangulator.h"
 
+#include "ofxUI.h"
+
 class testApp : public ofBaseApp{
 
 	public:
@@ -30,6 +32,11 @@ class testApp : public ofBaseApp{
         Fireplace fireplace;
         FireplacePlayer fireSound;
     
+        // rendering stuff
+        ofFbo screenFbo;
+        ofPixels renderPix;
+        int frameCount;
+    
         ofxThreadedImageLoader loader;
         ofLight                 light;
     
@@ -37,5 +44,19 @@ class testApp : public ofBaseApp{
         ofImage                 logPreRender, firePreRender, fireplacePreRender;
         ofImage                 logRender, fireRender, fireplaceRender;
     
-        Triangulator            triangles;
+        Triangulator            triangleLog, triangleFire, triangleFireplace;
+    
+        ofxUICanvas             * gui;
+        void guiEvent(ofxUIEventArgs &e);
+    
+        // gui vars
+        int blurAmount;
+        bool bRendering, bTriangulate, bTriangulateOnce, bDebug;
+        float flameChangeRate, logChangeRate, fireplaceChangeRate;
+        float flameHueDist, logHueDist, fireplaceHueDist;
+        float flameThresh, logThresh, fireplaceThresh;
+    
+        float frame;
 };
+
+

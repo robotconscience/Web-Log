@@ -70,10 +70,12 @@ protected:
     
     void render( ofImage * from, ofImage * to ){
         static ofPixels pix;
-        ofFbo fbo; fbo.allocate( from->width, from->height, GL_RGBA, 4  );
+        static ofFbo fbo;
+        if ( fbo.getWidth() != from->width || fbo.getHeight() != from->height ){
+            fbo.allocate( from->width, from->height, GL_RGBA, 4  );
+        }
         fbo.begin();
-        ofSetColor(0);
-        ofRect(0, 0, from->getWidth(), from->getHeight() );
+        ofClear(255,255,255, 0);
         ofSetColor(255);
         triangulator.draw();
         

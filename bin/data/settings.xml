@@ -1,0 +1,55 @@
+<Widget>
+    <Kind>4</Kind>
+    <Name>FPS SLIDER</Name>
+    <Value>0.360496372</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>rendering</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>triangulate</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>debug</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>flame_dist</Name>
+    <Value>0.205128208</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>log_dist</Name>
+    <Value>0.551282048</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>fireplace_dist</Name>
+    <Value>0.980769217</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>blurAmount</Name>
+    <Value>53.942306519</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>flameThresh</Name>
+    <Value>0.012820513</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>logThresh</Name>
+    <Value>0.016025642</Value>
+</Widget>
+<Widget>
+    <Kind>4</Kind>
+    <Name>fireplaceThresh</Name>
+    <Value>0.051282052</Value>
+</Widget>

@@ -1,6 +1,9 @@
 #version 120
 
-uniform sampler2DRect	tex;
+uniform sampler2DRect	tex1;
+uniform sampler2DRect	tex2;
+uniform float minDist;
+uniform float time;
 
 void main(){
 	//this is the fragment shader
@@ -11,16 +14,18 @@ void main(){
 	//gl_FragCoord gives us the x and y of the current pixel its drawing
 	
 	//we grab the x and y and store them in an int
-	float xVal = gl_FragCoord.x;
-	float yVal = gl_FragCoord.y;
 	vec4 col = gl_Color;
-	vec4 texColor = texture2DRect(tex, v2);
+	vec4 texColor = texture2DRect(tex1, v2);
+    vec4 texColor2 = texture2DRect(tex2, v2);
+    vec4 mixed      = mix( texColor2, texColor, time);
 	float dist = distance(gl_Color, texColor);
-
-	if( dist < .5 ){
-		gl_FragColor = texColor * gl_Color;    
+    
+    gl_FragColor = mixed * gl_Color;
+    
+    if( dist <= minDist ){
+		gl_FragColor = mixed * gl_Color;
     }else{
-		gl_FragColor.rgb = texture2DRect(tex, v2).rgb * gl_Color.rgb;    
+		gl_FragColor.rgb = mixed.rgb * gl_Color.rgb;
 		gl_FragColor.a = 0.0;//dist * .1;
 	}
 	
