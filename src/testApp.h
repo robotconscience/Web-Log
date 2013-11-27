@@ -56,6 +56,10 @@ class testApp : public ofBaseApp{
         float flameHueDist, logHueDist, fireplaceHueDist;
         float flameThresh, logThresh, fireplaceThresh;
     
+        RenderMode renderMode;
+    
+        bool bRenderFireplace;
+    
         float frame;
 };
 

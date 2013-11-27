@@ -65,37 +65,33 @@ public:
         
         
 //        lock();
-        if ( 1 ){
-            ofPushStyle();
-            fbo1.begin();
-            ofClear(255,255,255, 0);
-            ofSetColor(255);
-            frontImage->draw(0,0, width, height);
-            fbo1.end();
+        if ( frame - lastChanged >= changeRate ){
+            lastChanged = frame;
             
-            fbo2.begin();
-            ofClear(255,255,255,0);
-            backImage->draw(0,0, width, height);
-            fbo2.end();
+            backImage->loadImage( imagePaths[imageIndex] );
+            imageIndex++;;
+            //bFadeDir = !bFadeDir;
             
-            if ( frame - lastChanged >= changeRate ){
-                lastChanged = frame;
-                
-                backImage->loadImage( imagePaths[imageIndex] );
-                imageIndex++;;
-                //bFadeDir = !bFadeDir;
-                
-                cout << imagePaths.size() << ":" << imageIndex << endl;
-                
-                if (imageIndex >= imagePaths.size() ){
-                    imageIndex = 0;
-                }
-                frontImage->loadImage( imagePaths[imageIndex]);
-                cout << imagePaths[imageIndex] << endl;
+            if (imageIndex >= imagePaths.size() ){
+                imageIndex = 0;
             }
-            ofPopStyle();
-            
+            frontImage->loadImage( imagePaths[imageIndex]);
         }
+        
+        ofPushStyle();
+        fbo1.begin();
+        ofClear(255,255,255, 0);
+        ofSetColor(255);
+        frontImage->draw(0,0, width, height);
+        fbo1.end();
+        
+        fbo2.begin();
+        ofClear(255,255,255,0);
+        backImage->draw(0,0, width, height);
+        fbo2.end();
+        
+        ofPopStyle();
+    
 //        unlock();
         frame++;
     }
@@ -103,19 +99,35 @@ public:
     virtual void draw(){
         ofPushStyle();
 //        ofRect(x-(width+20)/2.0f,y-(height+20)/2.0f, width+20, height+20);
+        fbo1.getTextureReference().bind();
+        fbo2.getTextureReference().bind();
+        
         shader.begin();
-        shader.setUniformTexture("tex1", fbo1.getTextureReference(), 1);
-        shader.setUniformTexture("tex2", fbo2.getTextureReference(), 2);
+        shader.setUniformTexture("tex1", fbo1.getTextureReference(), 1);//fbo1.getTextureReference().texData.textureID);
+        shader.setUniformTexture("tex2", fbo2.getTextureReference(), 2);//fbo2.getTextureReference().texData.textureID);
         shader.setUniform1f("minDist", minDist);
         shader.setUniform1f("time", ofMap(frame - lastChanged, 0, changeRate, 0.0, 1.0, true));
+        
 //        if (term == "fire") cout << ofMap(frame - lastChanged, 0, changeRate, 0.0, 1.0, true) << endl;
         renderedFbo.begin();
         ofClear(255,255,255, 0);
         ofSetColor(tint);
-        fbo1.draw(0,0);
-        fbo2.draw(0,0);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0);
+        glVertex3f(0, 0, 0);
+        glTexCoord2f(width, 0);
+        glVertex3f(width, 0, 0);
+        glTexCoord2f(width, height);
+        glVertex3f(width, height, 0);
+        glTexCoord2f(0, height);
+        glVertex3f(0, height, 0);
+        glEnd();
+        
         renderedFbo.end();
         shader.end();
+        
+        fbo1.getTextureReference().unbind();
+        fbo2.getTextureReference().unbind();
         
 //        shader.begin();
 //        shader.setUniformTexture("tex", images[currentImage+1]->getTextureReference(), 1);

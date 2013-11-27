@@ -17,6 +17,7 @@ xcuserdata
 .svn
 CVS
 
+bin/data/yule/*
 bin/data/fireplace/*
 bin/data/flickr.xml
 bin/data/flame/*

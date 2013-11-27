@@ -11,6 +11,13 @@
 #include "Triangle.h"
 #include "ofxCv.h"
 #include "ofxDelaunay.h"
+#include "ofxVoronoi.h"
+
+enum RenderMode {
+    RENDER_DELAUNAY,
+    RENDER_VORONOI,
+    RENDER_SQUARES
+};
 
 class Triangulator : protected ofThread {
 public:
@@ -18,6 +25,7 @@ public:
     Triangulator(){
         bNeedToProcess = false;
         setThreshold(0.01);
+        renderMode = RENDER_DELAUNAY;
     }
     
     // incomplete
@@ -32,13 +40,36 @@ public:
     }
     
     ofImage * process( ofImage * i ){
-        processDelaunay(i);
+        switch ( renderMode ){
+            case RENDER_DELAUNAY:
+                processDelaunay(i);
+                break;
+            case RENDER_VORONOI:
+                processVoronoi( i );
+                break;
+                
+            case RENDER_SQUARES:
+                processDelaunay(i);
+                processVoronoi( i );
+                break;
+        }
         ofImage * img  = render(i);
         return img;
     }
     
     void process( ofImage * from, ofImage * to ){
-        processDelaunay(from);
+        switch ( renderMode ){
+            case RENDER_DELAUNAY:
+                processDelaunay(from);
+                break;
+            case RENDER_VORONOI:
+                processVoronoi( from );
+                break;
+            case RENDER_SQUARES:
+                processVoronoi( from );
+                processDelaunay( from );
+                break;
+        }
         render(from, to);
     }
     
@@ -46,14 +77,23 @@ public:
         threshold = thresh;
     }
     
+    void setRenderMode( RenderMode render ){
+        renderMode = render;
+    }
+    
 protected:
     float threshold;
+    
+    RenderMode renderMode;
     
     vector<ofImage*> queue;
     
     vector<Triangle> triangles;
     vector<ofPoint> points;
-    ofxDelaunay triangulator;
+    ofxDelaunay delaunayProcessor;
+    
+    ofxVoronoi voronoiProcessor;
+    vector<ofMesh> voronoiMesh;
     
     void threadedFunction(){
         while (!isThreadRunning()){
@@ -71,42 +111,54 @@ protected:
     void render( ofImage * from, ofImage * to ){
         static ofPixels pix;
         static ofFbo fbo;
+        static ofFbo pongFbo;
         if ( fbo.getWidth() != from->width || fbo.getHeight() != from->height ){
-            fbo.allocate( from->width, from->height, GL_RGBA, 4  );
+            fbo.allocate( from->width, from->height, GL_RGBA, 8  );
+            pongFbo.allocate( from->width, from->height, GL_RGBA, 8  );
         }
-        fbo.begin();
-        ofClear(255,255,255, 0);
-        ofSetColor(255);
-        triangulator.draw();
+        //delaunayProcessor.draw();
         
-        for ( int i=0, len = triangles.size(); i<len; i++){
-            triangles[i].draw();
+        switch (renderMode){
+            case RENDER_DELAUNAY:
+                fbo.begin();
+                ofClear(255,255,255, 0);
+                ofSetColor(255);
+                for ( int i=0, len = triangles.size(); i<len; i++){
+                    triangles[i].draw();
+                }
+                ofSetColor(255);
+                ofDisableBlendMode();
+                fbo.end();
+                break;
+            case RENDER_VORONOI:
+                fbo.begin();
+                ofClear(255,255,255, 0);
+                for ( int i=0, len = voronoiMesh.size(); i<len; i++){
+                    voronoiMesh[i].draw();
+                }
+                ofSetColor(255);
+                ofDisableBlendMode();
+                fbo.end();
+                break;
+            case RENDER_SQUARES:
+                pongFbo.begin();
+                ofClear(255,255,255, 0);
+                for ( int i=0, len = voronoiMesh.size(); i<len; i++){
+                    voronoiMesh[i].drawWireframe();
+                }
+                pongFbo.end();
+                fbo.begin();
+                ofClear(255,255,255, 0);
+                for ( int i=0, len = triangles.size(); i<len; i++){
+                    triangles[i].draw();
+                }
+                ofSetColor(255,255,255,200);
+                pongFbo.draw(0,0);
+                
+                fbo.end();
+                ofSetColor(255);
+                break;
         }
-        /*switch (blendMode){
-         case 1:
-         ofEnableBlendMode(OF_BLENDMODE_ADD);
-         break;
-         case 2:
-         ofEnableBlendMode(OF_BLENDMODE_ALPHA);
-         break;
-         case 3:
-         ofEnableBlendMode(OF_BLENDMODE_MULTIPLY);
-         break;
-         case 4:
-         ofEnableBlendMode(OF_BLENDMODE_SCREEN);
-         break;
-         case 5:
-         ofEnableBlendMode(OF_BLENDMODE_SUBTRACT);
-         break;
-         case 0:
-         default:
-         ofDisableBlendMode();
-         ofEnableAlphaBlending();
-         break;
-         }*/
-        ofSetColor(255);
-        ofDisableBlendMode();
-        fbo.end();
         fbo.readToPixels(pix);
         to->setFromPixels(pix);
     }
@@ -120,7 +172,7 @@ protected:
     
     void processDelaunay( ofImage * cImage ){
         points.clear();
-        triangulator.reset();
+        delaunayProcessor.reset();
         triangles.clear();
         
         lock();
@@ -132,27 +184,27 @@ protected:
         for ( int i=0, len = points.size(); i<len; i++){
             // why do we have to do this ? :(
             float x = ofRandom(points[i].x,points[i].x+.1), y =  ofRandom(points[i].y,points[i].y+.1);
-            triangulator.addPoint(x,y, 0 );
+            delaunayProcessor.addPoint(x,y, 0 );
         }
         lock();
         if ( points.size() > 0 ){
-            triangulator.triangulate();
+            delaunayProcessor.triangulate();
         }
         unlock();
         // add colors to faces
         ofColor white;
-        for ( int i=0, len = triangulator.triangleMesh.getNumVertices(); i<len; i++){
-            triangulator.triangleMesh.addColor(white);
+        for ( int i=0, len = delaunayProcessor.triangleMesh.getNumVertices(); i<len; i++){
+            delaunayProcessor.triangleMesh.addColor(white);
         }
         
-        for ( int i=0, len = triangulator.triangleMesh.getNumIndices(); i<len; i+=3){
-            ofIndexType i1 = triangulator.triangleMesh.getIndex( (ofIndexType) i);
-            ofIndexType i2 = triangulator.triangleMesh.getIndex( (ofIndexType) i+1);
-            ofIndexType i3 = triangulator.triangleMesh.getIndex( (ofIndexType) i+2);
+        for ( int i=0, len = delaunayProcessor.triangleMesh.getNumIndices(); i<len; i+=3){
+            ofIndexType i1 = delaunayProcessor.triangleMesh.getIndex( (ofIndexType) i);
+            ofIndexType i2 = delaunayProcessor.triangleMesh.getIndex( (ofIndexType) i+1);
+            ofIndexType i3 = delaunayProcessor.triangleMesh.getIndex( (ofIndexType) i+2);
             
-            ofPoint p1 = triangulator.triangleMesh.getVertex( i1 );
-            ofPoint p2 = triangulator.triangleMesh.getVertex( i2 );
-            ofPoint p3 = triangulator.triangleMesh.getVertex( i3 );
+            ofPoint p1 = delaunayProcessor.triangleMesh.getVertex( i1 );
+            ofPoint p2 = delaunayProcessor.triangleMesh.getVertex( i2 );
+            ofPoint p3 = delaunayProcessor.triangleMesh.getVertex( i3 );
             
             ofPoint center;
             center.x = (p1.x + p2.x + p3.x )/3.0;
@@ -161,14 +213,63 @@ protected:
             ofColor c = cImage->getColor(round(center.x), round(center.y));
             //        c.a = 200;
             ofFloatColor toSet; toSet.set( c.r/255.0f, c.g/255.0f, c.b/255.0f, c.a/255.0f);
-            triangulator.triangleMesh.setColor(i1, toSet);
-            triangulator.triangleMesh.setColor(i2, toSet);
-            triangulator.triangleMesh.setColor(i3, toSet);
+            delaunayProcessor.triangleMesh.setColor(i1, toSet);
+            delaunayProcessor.triangleMesh.setColor(i2, toSet);
+            delaunayProcessor.triangleMesh.setColor(i3, toSet);
             
             Triangle t = Triangle();
             t.setup( p1, p2, p3 );
             t.color = c;
             triangles.push_back(t);
+        }
+    }
+    
+    void processVoronoi( ofImage * cImage ){
+        points.clear();
+        voronoiProcessor.clear();
+        voronoiProcessor.setBounds(0,0, cImage->width, cImage->height);
+        
+        lock();
+        // find important points
+        findPoints( cImage );
+        unlock();
+        
+        // process!
+        for ( int i=0, len = points.size(); i<len; i++){
+            // why do we have to do this ? :(
+            float x = ofRandom(points[i].x,points[i].x+.1), y =  ofRandom(points[i].y,points[i].y+.1);
+            voronoiProcessor.addPoint(x,y);
+        }
+        
+        lock();
+        if ( points.size() > 0 ){
+            voronoiProcessor.generateVoronoi();
+        }
+        unlock();
+        
+        voronoiMesh.clear();
+        
+        
+        // add colors to faces
+        ofColor white;
+        
+        for (int i=0; i < voronoiProcessor.cells.size(); i++){
+            ofPath line;
+            line.moveTo(voronoiProcessor.cells[i].pts[0]);
+            for ( int j=1; j<voronoiProcessor.cells[i].pts.size(); j++){
+                line.lineTo(voronoiProcessor.cells[i].pts[j]);
+            }
+            line.close();
+            voronoiMesh.push_back(line.getTessellation());
+            
+            ofColor c = cImage->getColor(round(voronoiMesh.back().getCentroid().x), round(voronoiMesh.back().getCentroid().y));
+            //        c.a = 200;
+            ofFloatColor toSet; toSet.set( c.r/255.0f, c.g/255.0f, c.b/255.0f, c.a/255.0f);
+            
+            for ( int k=0; k < voronoiMesh.back().getNumVertices(); k++){
+                voronoiMesh.back().addColor(c);
+            }
+            
         }
     }
     

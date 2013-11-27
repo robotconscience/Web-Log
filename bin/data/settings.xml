@@ -1,7 +1,7 @@
 <Widget>
     <Kind>4</Kind>
     <Name>FPS SLIDER</Name>
-    <Value>0.360496372</Value>
+    <Value>0.354007363</Value>
 </Widget>
 <Widget>
     <Kind>2</Kind>
@@ -21,17 +21,17 @@
 <Widget>
     <Kind>4</Kind>
     <Name>flame_dist</Name>
-    <Value>0.205128208</Value>
+    <Value>0.153846160</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>log_dist</Name>
-    <Value>0.551282048</Value>
+    <Value>0.278846145</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>fireplace_dist</Name>
-    <Value>0.980769217</Value>
+    <Value>0.173076928</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
@@ -41,15 +41,35 @@
 <Widget>
     <Kind>4</Kind>
     <Name>flameThresh</Name>
-    <Value>0.012820513</Value>
+    <Value>0.025641026</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>logThresh</Name>
-    <Value>0.016025642</Value>
+    <Value>0.009615385</Value>
 </Widget>
 <Widget>
     <Kind>4</Kind>
     <Name>fireplaceThresh</Name>
     <Value>0.051282052</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>bRenderFireplace</Name>
+    <Value>1</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>delaunay</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>voronoi</Name>
+    <Value>0</Value>
+</Widget>
+<Widget>
+    <Kind>2</Kind>
+    <Name>squares</Name>
+    <Value>1</Value>
 </Widget>

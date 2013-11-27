@@ -39,7 +39,7 @@ void testApp::setup(){
         fireplace.addImagePath( fireplaces.getPath(i) );
     }
 
-    screenFbo.allocate(1920, 1080, GL_RGBA, 4);
+    screenFbo.allocate(1920, 1080, GL_RGBA, 8);
     
     // gui setup
     float dim = 24;
@@ -71,6 +71,18 @@ void testApp::setup(){
     gui->addSlider("logThresh", 0.0, 1.0, .01);
     gui->addSlider("fireplaceThresh", 0.0, 1.0, .1);
     
+    gui->addSpacer(length-xInit, 1);
+	gui->addWidgetDown(new ofxUILabel("RENDER FIREPLACE?", OFX_UI_FONT_MEDIUM));
+    gui->addToggle("bRenderFireplace", true);
+    
+    gui->addSpacer(length-xInit, 1);
+	gui->addWidgetDown(new ofxUILabel("RENDER MODE", OFX_UI_FONT_MEDIUM));
+    vector<string> renderModes;
+    renderModes.push_back("delaunay");
+    renderModes.push_back("voronoi");
+    renderModes.push_back("squares");
+    gui->addWidgetDown( new ofxUIRadio("renderMode", renderModes, OFX_UI_ORIENTATION_HORIZONTAL, dim, dim * .25));
+    
     flameChangeRate, logChangeRate, fireplaceChangeRate;
     flameThresh, logThresh, fireplaceThresh;
     
@@ -79,6 +91,9 @@ void testApp::setup(){
     bDebug = false;
     bTriangulateOnce = true;
     blurAmount = 200;
+    bRenderFireplace = true;
+    
+    renderMode = RENDER_DELAUNAY;
     
     flameThresh = 0.01;
     logThresh = .02;
@@ -122,17 +137,25 @@ void testApp::draw(){
         firePreRender.setFromPixels(firePixels);
         fireplacePreRender.setFromPixels(fireplacePixels);
         
-        triangleLog.setThreshold(logThresh + sin(frame) * logThresh * .1 );
+        int amt = blurAmount / 2;
+        //if ( amt % 2 == 0 ) amt += 1;
+        
+//        ofxCv::blur(logPreRender, amt);
+//        logPreRender.update();
+        
+        triangleLog.setThreshold(logThresh);
         triangleLog.process(&logPreRender, &logRender);
-        triangleFire.setThreshold(flameThresh + sin(frame) * flameThresh * .1 );
+        triangleFire.setThreshold(flameThresh + sin(frame) * flameThresh * .5 );
         triangleFire.process(&firePreRender, &fireRender);
-        triangleFireplace.setThreshold(fireplaceThresh + sin(frame) * fireplaceThresh * .1 );
-        triangleFireplace.process(&fireplacePreRender, &fireplaceRender);
+        triangleFireplace.setThreshold(fireplaceThresh);
+        if ( bRenderFireplace ){
+            triangleFireplace.process(&fireplacePreRender, &fireplaceRender);
+            
+            ofxCv::blur(fireplaceRender, blurAmount);
+            fireplaceRender.update();
+        }
         
-        ofxCv::blur(fireplaceRender, blurAmount);
-        fireplaceRender.update();
-        
-        frame += .01;
+        frame += .1;
     }
     
     screenFbo.begin();
@@ -140,7 +163,7 @@ void testApp::draw(){
     ofSetColor(0);
     ofRect(0,0,1920,1080);
     ofSetColor(255);
-    fireplaceRender.draw( fireplace.x - fireplace.width/2.0, fireplace.y - fireplace.height/2.0 );
+    if (bRenderFireplace) fireplaceRender.draw( fireplace.x - fireplace.width/2.0, fireplace.y - fireplace.height/2.0 );
     logRender.draw( log.x - log.width/2, log.y - log.height/2);
     fireRender.draw( fire.x- fire.width/2.0, fire.y - fire.height/2.0 );
     screenFbo.end();
@@ -153,7 +176,7 @@ void testApp::draw(){
             name = "0"+name;
         }
         
-        ofSaveImage(renderPix, name+".png" );
+        ofSaveImage(renderPix, "yule/" + name+".png" );
         frameCount++;
     }
     
@@ -206,8 +229,30 @@ void testApp::guiEvent(ofxUIEventArgs &e)
         logThresh = ((ofxUISlider*)e.widget)->getScaledValue();
     }  else if ( name == "fireplaceThresh" ){
         fireplaceThresh = ((ofxUISlider*)e.widget)->getScaledValue();
+    } else if ( name == "bRenderFireplace" ){
+        bRenderFireplace = ((ofxUIToggle*)e.widget)->getValue();
+    } else if ( name == "delaunay" ){
+        renderMode = RENDER_DELAUNAY;
+        cout << renderMode << endl;
+        
+//        triangleLog.setRenderMode(renderMode);
+        triangleFire.setRenderMode(renderMode);
+//        triangleFireplace.setRenderMode(renderMode);
+    } else if ( name == "voronoi"){
+        renderMode = RENDER_VORONOI;
+        cout << renderMode << endl;
+        
+//        triangleLog.setRenderMode(renderMode);
+        triangleFire.setRenderMode(renderMode);
+//        triangleFireplace.setRenderMode(renderMode);
+        
+    } else if ( name == "squares"){
+        renderMode = RENDER_SQUARES;
+        
+        //triangleLog.setRenderMode(renderMode);
+        triangleFire.setRenderMode(renderMode);
+        //triangleFireplace.setRenderMode(renderMode);
     }
-    cout << blurAmount << endl;
     
     gui->saveSettings("settings.xml");
 }
