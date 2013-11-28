@@ -1,7 +1,7 @@
 #include "testApp.h"
 
-static string API_KEY = "912826c8fca6f1b850b239ae96cdbe76";
-static string API_SEC = "7bf2405ff29ae266";
+static string API_KEY = "";
+static string API_SEC = "";
 
 //--------------------------------------------------------------
 void testApp::setup(){
@@ -57,6 +57,8 @@ void testApp::setup(){
     gui->addWidgetDown( new ofxUIToggle("triangulate", false, dim*.25, dim*.25));
     gui->addWidgetDown( new ofxUIButton("triangulate_once", false, dim*.25, dim*.25));
     gui->addWidgetDown( new ofxUIToggle("debug", false, dim*.25, dim*.25));
+    gui->addWidgetDown( new ofxUIToggle("raw", false, dim*.25, dim*.25));
+    
     gui->addSpacer(length-xInit, 1);
     ofAddListener(gui->newGUIEvent,this,&testApp::guiEvent);
     gui->addSlider("flame_dist", 0.0, 1.0, .75);
@@ -89,6 +91,7 @@ void testApp::setup(){
     bRendering = false;
     bTriangulate = false;
     bDebug = false;
+    bRaw = false;
     bTriangulateOnce = true;
     blurAmount = 200;
     bRenderFireplace = true;
@@ -143,19 +146,41 @@ void testApp::draw(){
 //        ofxCv::blur(logPreRender, amt);
 //        logPreRender.update();
         
-        triangleLog.setThreshold(logThresh);
-        triangleLog.process(&logPreRender, &logRender);
-        triangleFire.setThreshold(flameThresh + sin(frame) * flameThresh * .5 );
-        triangleFire.process(&firePreRender, &fireRender);
-        triangleFireplace.setThreshold(fireplaceThresh);
-        if ( bRenderFireplace ){
-            triangleFireplace.process(&fireplacePreRender, &fireplaceRender);
-            
-            ofxCv::blur(fireplaceRender, blurAmount);
-            fireplaceRender.update();
+        if (!bRaw){
+            triangleLog.setThreshold(logThresh);
+            triangleLog.process(&logPreRender, &logRender);
+            triangleFire.setThreshold(flameThresh + sin(frame) * flameThresh * .5 );
+            triangleFire.process(&firePreRender, &fireRender);
+            triangleFireplace.setThreshold(fireplaceThresh);
+            if ( bRenderFireplace ){
+                triangleFireplace.process(&fireplacePreRender, &fireplaceRender);
+            }
+        } else {
+            fireRender = firePreRender;
+            logRender = logPreRender;
+            fireplaceRender = fireplacePreRender;
         }
         
-        frame += .1;
+        ofxCv::blur(fireplaceRender, blurAmount);
+        fireplaceRender.update();
+        
+        static bool bRenderedOnce = false;
+        if ( !bRenderedOnce ){
+            bRenderedOnce = true;
+            logSmoothRender = logRender;
+            fireSmoothRender = fireRender;
+            fireplaceSmoothRender = fireplaceRender;
+        } else {
+            ofxCv::lerp(logSmoothRender, logRender, logSmoothRender, .7);
+            ofxCv::lerp(fireplaceSmoothRender, fireplaceRender, fireplaceSmoothRender, .9);
+//            ofxCv::lerp(fireSmoothRender, fireRender, fireSmoothRender, .25);
+            logSmoothRender.update();
+            //            fireSmoothRender.update();
+            fireSmoothRender = fireRender;
+            fireplaceSmoothRender.update();
+        }
+        
+        frame += .01;
     }
     
     screenFbo.begin();
@@ -163,9 +188,11 @@ void testApp::draw(){
     ofSetColor(0);
     ofRect(0,0,1920,1080);
     ofSetColor(255);
-    if (bRenderFireplace) fireplaceRender.draw( fireplace.x - fireplace.width/2.0, fireplace.y - fireplace.height/2.0 );
-    logRender.draw( log.x - log.width/2, log.y - log.height/2);
-    fireRender.draw( fire.x- fire.width/2.0, fire.y - fire.height/2.0 );
+    if (bRenderFireplace) fireplaceSmoothRender.draw( fireplace.x - fireplace.width/2.0, fireplace.y - fireplace.height/2.0 );
+    ofEnableBlendMode(OF_BLENDMODE_ADD);
+    logSmoothRender.draw( log.x - log.width/2, log.y - log.height/2);
+    fireSmoothRender.draw( fire.x- fire.width/2.0, fire.y - fire.height/2.0 );
+    ofEnableBlendMode(OF_BLENDMODE_ALPHA);
     screenFbo.end();
     
     if (bRendering){
@@ -213,6 +240,8 @@ void testApp::guiEvent(ofxUIEventArgs &e)
         bTriangulate = btn->getValue();
 	}else if(name == "triangulate_once") {
         bTriangulateOnce = true;
+    } else if ( name == "raw" ){
+        bRaw = ((ofxUIToggle*)e.widget)->getValue();
 	} else if ( name == "flame_dist"){
         fire.setHueDistance(((ofxUISlider*)e.widget)->getValue() * 5.0f);
     } else if ( name == "log_dist"){

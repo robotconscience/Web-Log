@@ -43,7 +43,7 @@ class testApp : public ofBaseApp{
         ofPixels                logPixels, firePixels, fireplacePixels;
         ofImage                 logPreRender, firePreRender, fireplacePreRender;
         ofImage                 logRender, fireRender, fireplaceRender;
-    
+        ofImage                 logSmoothRender, fireSmoothRender, fireplaceSmoothRender;
         Triangulator            triangleLog, triangleFire, triangleFireplace;
     
         ofxUICanvas             * gui;
@@ -51,7 +51,7 @@ class testApp : public ofBaseApp{
     
         // gui vars
         int blurAmount;
-        bool bRendering, bTriangulate, bTriangulateOnce, bDebug;
+        bool bRendering, bTriangulate, bTriangulateOnce, bDebug, bRaw;
         float flameChangeRate, logChangeRate, fireplaceChangeRate;
         float flameHueDist, logHueDist, fireplaceHueDist;
         float flameThresh, logThresh, fireplaceThresh;

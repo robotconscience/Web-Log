@@ -18,7 +18,7 @@ void main(){
 	vec4 texColor = texture2DRect(tex1, v2);
     vec4 texColor2 = texture2DRect(tex2, v2);
     vec4 mixed      = mix( texColor2, texColor, time);
-	float dist = distance(gl_Color, texColor);
+	float dist = distance(gl_Color, mixed);
     
     gl_FragColor = mixed * gl_Color;
     

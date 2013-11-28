@@ -22,5 +22,7 @@ public:
         height = 174;
         tint.set(97,59,0);
         changeRate = 500;
+        changeRateMin = 500;
+        changeRateMax = 500;
     }
 };

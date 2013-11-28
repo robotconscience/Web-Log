@@ -22,7 +22,7 @@ public:
         updateRate  = 3000;
         lastChanged = 0;
         frame       = 0;
-        changeRate  = 200;
+        changeRate  = 100;
         page = 0;
         currentImage = 0;
         shader.load("knockoutBlack");
@@ -35,6 +35,8 @@ public:
         imageIndex = -1;
         frontImage = new ofImage();
         backImage  = new ofImage();
+        changeRateMin = 10;
+        changeRateMax = 200;
     }
     
     
@@ -76,6 +78,8 @@ public:
                 imageIndex = 0;
             }
             frontImage->loadImage( imagePaths[imageIndex]);
+            
+            changeRate  = ofRandom(changeRateMin, changeRateMax);
         }
         
         ofPushStyle();
@@ -169,7 +173,7 @@ protected:
     float minDist;
     
     int lastUpdated, updateRate;
-    int lastChanged, frame, changeRate;
+    int lastChanged, frame, changeRate, changeRateMin, changeRateMax;
     int currentImage;
     string term;
     

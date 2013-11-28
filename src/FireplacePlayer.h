@@ -22,6 +22,8 @@ public:
         height = 1080;
         changeRate = 1000;
         media = "videos";
+        changeRateMin = 1000;
+        changeRateMax = 1000;
     }
     
 protected:
