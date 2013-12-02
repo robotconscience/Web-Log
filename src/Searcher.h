@@ -13,7 +13,7 @@
 
 class Searcher : protected ofThread, public ofRectangle {
 public:
-    
+        
     int numImages;
     int imageIndex;
     
@@ -37,6 +37,7 @@ public:
         backImage  = new ofImage();
         changeRateMin = 10;
         changeRateMax = 200;
+        bAddCorners = false;
     }
     
     
@@ -52,6 +53,7 @@ public:
         if (imageIndex == -1 ){
             imageIndex++;
             backImage->loadImage( imagePaths[imageIndex] );
+            changeRate = changeRates[imageIndex];
             imageIndex++;
             frontImage->loadImage( imagePaths[imageIndex]);
         }
@@ -79,7 +81,7 @@ public:
             }
             frontImage->loadImage( imagePaths[imageIndex]);
             
-            changeRate  = ofRandom(changeRateMin, changeRateMax);
+            changeRate = changeRates[imageIndex];
         }
         
         ofPushStyle();
@@ -157,7 +159,10 @@ public:
     
     void addImagePath( string path ){
         imagePaths.push_back(path);
+        changeRates.push_back(ofRandom(changeRateMin, changeRateMax));
     }
+    
+    bool bAddCorners;
     
 protected:
     ofColor tint;
@@ -166,7 +171,8 @@ protected:
     ofShader shader;
     string media;
     
-    vector<string> imagePaths;
+    vector<string>  imagePaths;
+    vector<int>     changeRates;
     
     bool bFadeDir;
     

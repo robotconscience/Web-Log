@@ -147,6 +147,10 @@ void testApp::draw(){
 //        logPreRender.update();
         
         if (!bRaw){
+            triangleLog.bAddCorners = log.bAddCorners;
+            triangleFire.bAddCorners = fire.bAddCorners;
+            triangleFireplace.bAddCorners = fireplace.bAddCorners;
+            
             triangleLog.setThreshold(logThresh);
             triangleLog.process(&logPreRender, &logRender);
             triangleFire.setThreshold(flameThresh + sin(frame) * flameThresh * .5 );
@@ -172,7 +176,7 @@ void testApp::draw(){
             fireplaceSmoothRender = fireplaceRender;
         } else {
             ofxCv::lerp(logSmoothRender, logRender, logSmoothRender, .7);
-            ofxCv::lerp(fireplaceSmoothRender, fireplaceRender, fireplaceSmoothRender, .9);
+            ofxCv::lerp(fireplaceSmoothRender, fireplaceRender, fireplaceSmoothRender, .95);
 //            ofxCv::lerp(fireSmoothRender, fireRender, fireSmoothRender, .25);
             logSmoothRender.update();
             //            fireSmoothRender.update();
@@ -203,7 +207,7 @@ void testApp::draw(){
             name = "0"+name;
         }
         
-        ofSaveImage(renderPix, "yule/" + name+".png" );
+        ofSaveImage(renderPix, "yule/" + name + ".png" );
         frameCount++;
     }
     

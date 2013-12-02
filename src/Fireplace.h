@@ -21,7 +21,7 @@ public:
         width = 1920;
         height = 1080;
         tint.set(150);
-        changeRate = 1000;
-        
+        changeRate = 2000;
+        bAddCorners = true;
     }
 };

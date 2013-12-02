@@ -24,6 +24,7 @@ public:
     
     Triangulator(){
         bNeedToProcess = false;
+        bAddCorners = false;
         setThreshold(0.01);
         renderMode = RENDER_DELAUNAY;
     }
@@ -80,6 +81,8 @@ public:
     void setRenderMode( RenderMode render ){
         renderMode = render;
     }
+    
+    bool bAddCorners;
     
 protected:
     float threshold;
@@ -178,6 +181,12 @@ protected:
         lock();
         // find important points
         findPoints( cImage );
+        if ( bAddCorners ){
+            points.push_back( ofPoint(0,0) );
+            points.push_back( ofPoint(cImage->width,0) );
+            points.push_back( ofPoint(cImage->width,cImage->height) );
+            points.push_back( ofPoint(0,cImage->height) );
+        }
         unlock();
         
         // process!
