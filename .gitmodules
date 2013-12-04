@@ -4,3 +4,6 @@
 [submodule "src/addons/ofxUI"]
 	path = src/addons/ofxUI
 	url = https://github.com/rezaali/ofxUI.git
+[submodule "src/addons/ofxVoronoi"]
+	path = src/addons/ofxVoronoi
+	url = https://github.com/vanderlin/ofxVoronoi.git
